@@ -1,3 +1,3 @@
 #!/bin/bash
 
-gcc cpl_lexer.c cpl.c -o cpl
+gcc -I include/ src/cpl_utils.c src/cpl_lexer.c src/cpl.c -o cpl

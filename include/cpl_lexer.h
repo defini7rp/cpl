@@ -109,7 +109,8 @@ typedef struct cplL_State
 
 void cplL_log_err(const char* format, ...);
 
-char* cplL_token_as_cstr(cplL_Token* token);
+char* cplL_token_to_cstr(cplL_Token* token);
+void cplL_print_token(cplL_Token* token);
 bool cplL_is_token_equal(cplL_Token* token, const char* data);
 
 bool cplL_is_digit(char c);
@@ -128,6 +129,8 @@ bool cplL_is_hex(char c);
 
 void cplL_start_token(cplL_State* state, cplL_Token* token, cplL_TokenType type, cplL_StateType nextState, bool push);
 void cplL_append_char(cplL_State* state, cplL_Token* token, cplL_StateType nextState);
+
+bool cplL_check_eof(cplL_State* state);
 
 // Returns true if we've got a token and returns false in a case of invalid token
 // or an end of the file

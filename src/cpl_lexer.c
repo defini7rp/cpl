@@ -25,6 +25,67 @@ char* cplL_token_as_cstr(cplL_Token* token)
     return buffer;
 }
 
+void cplL_print_token(cplL_Token* token)
+{
+    const char* prefix;
+
+    switch (token->type)
+    {
+    case CPL_TT_UNDEFINED:       prefix = "UNDEFINED";       break;
+    case CPL_TT_STRING:          prefix = "STRING";          break;
+    case CPL_TT_NUMERIC_UNKNOWN: prefix = "NUMERIC_UNKNOWN"; break;
+    case CPL_TT_NUMERIC_2:       prefix = "NUMERIC_2";       break;
+    case CPL_TT_NUMERIC_10:      prefix = "NUMERIC_10";      break;
+    case CPL_TT_NUMERIC_16:      prefix = "NUMERIC_16";      break;
+    case CPL_TT_BOOLEAN:         prefix = "BOOLEAN";         break;
+    case CPL_TT_SYMBOL:          prefix = "SYMBOL";          break;
+    case CPL_TT_OPERATOR:        prefix = "OPERATOR";        break;
+    case CPL_TT_OP_LPAREN:       prefix = "OP_LPAREN";       break;
+    case CPL_TT_OP_RPAREN:       prefix = "OP_RPAREN";       break;
+    case CPL_TT_OP_PLUS:         prefix = "OP_PLUS";         break;
+    case CPL_TT_OP_MINUS:        prefix = "OP_MINUS";        break;
+    case CPL_TT_OP_ASTERISK:     prefix = "OP_ASTERISK";     break;
+    case CPL_TT_OP_SLASH:        prefix = "OP_SLASH";        break;
+    case CPL_TT_OP_MOD:          prefix = "OP_MOD";          break;
+    case CPL_TT_OP_BOR:          prefix = "OP_BOR";          break;
+    case CPL_TT_OP_BAND:         prefix = "OP_BAND";         break;
+    case CPL_TT_OP_XOR:          prefix = "OP_XOR";          break;
+    case CPL_TT_OP_BNOT:         prefix = "OP_BNOT";         break;
+    case CPL_TT_OP_LESS:         prefix = "OP_LESS";         break;
+    case CPL_TT_OP_GREATER:      prefix = "OP_GREATER";      break;
+    case CPL_TT_OP_NOT:          prefix = "OP_NOT";          break;
+    case CPL_TT_OP_ASSIGN:       prefix = "OP_ASSIGN";       break;
+    case CPL_TT_OP_COMMA:        prefix = "OP_COMMA";        break;
+    case CPL_TT_OP_POWER:        prefix = "OP_POWER";        break;
+    case CPL_TT_OP_AND:          prefix = "OP_AND";          break;
+    case CPL_TT_OP_OR:           prefix = "OP_OR";           break;
+    case CPL_TT_OP_SHIFTLEFT:    prefix = "OP_SHIFTLEFT";    break;
+    case CPL_TT_OP_SHIFTRIGHT:   prefix = "OP_SHIFTRIGHT";   break;
+    case CPL_TT_OP_LESSEQUAL:    prefix = "OP_LESSEQUAL";    break;
+    case CPL_TT_OP_GREATEREQUAL: prefix = "OP_GREATEREQUAL"; break;
+    case CPL_TT_OP_ISEQUAL:      prefix = "OP_ISEQUAL";      break;
+    case CPL_TT_OP_NOTEQUAL:     prefix = "OP_NOTEQUAL";     break;
+    case CPL_TT_KEYWORD:         prefix = "KEYWORD";         break;
+    case CPL_TT_KW_IF:           prefix = "KW_IF";           break;
+    case CPL_TT_KW_DO:           prefix = "KW_DO";           break;
+    case CPL_TT_KW_VAR:          prefix = "KW_VAR";          break;
+    case CPL_TT_KW_FOR:          prefix = "KW_FOR";          break;
+    case CPL_TT_KW_END:          prefix = "KW_END";          break;
+    case CPL_TT_KW_THEN:         prefix = "KW_THEN";         break;
+    case CPL_TT_KW_ELSE:         prefix = "KW_ELSE";         break;
+    case CPL_TT_KW_ELIF:         prefix = "KW_ELIF";         break;
+    case CPL_TT_KW_FUNC:         prefix = "KW_FUNC";         break;
+    case CPL_TT_KW_WHILE:        prefix = "KW_WHILE";        break;
+    }
+
+    printf("[%s] ", prefix);
+    
+    for (size_t i = 0; i < token->length; i++)
+        putchar(*(token->start + i));
+
+    printf("\n");
+}
+
 bool cplL_is_token_equal(cplL_Token* token, const char* data)
 {
     for (size_t i = 0; i < token->length; i++)
@@ -131,9 +192,28 @@ void cplL_append_char(cplL_State* state, cplL_Token* token, cplL_StateType nextS
     state->cursor++;
 }
 
+bool cplL_check_eof(cplL_State* state)
+{
+    if (state->cursor >= state->input_length)
+    {
+        if (state->parenthesesBalancer != 0)
+            cplL_log_err("parentheses were not balanced\n");
+
+        if (state->quotesBalancer != 0)
+            cplL_log_err("quotes were not balanced\n");
+
+        return false;
+    }
+
+    return true;
+}
+
 bool cplL_next_token(cplL_State* state, cplL_Token* token)
 {
 #define CURRENT_CHAR state->input[state->cursor]
+
+    if (!state->input)
+        return false;
 
     token->col = 0;
     token->row = 0;
@@ -141,28 +221,19 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
     token->type = CPL_TT_UNDEFINED;
     token->start = 0;
 
-    if (state->cursor >= state->input_length)
-    {
-        if (state->parenthesesBalancer != 0)
-            cplL_log_err("parentheses were not balanced");
-
-        if (state->quotesBalancer != 0)
-            cplL_log_err("quotes were not balanced");
-
+    if (!cplL_check_eof(state))
         return false;
-    }
 
     do
     {
         if (state->currentState == CPL_ST_NEW)
         {
-            if (cplL_is_whitespace(CURRENT_CHAR) ||
+            while (cplL_is_whitespace(CURRENT_CHAR) ||
                 cplL_is_newline(CURRENT_CHAR))
-            {
-                state->nextState = CPL_ST_NEW;
                 state->cursor++;
-                return true;
-            }
+
+            if (!cplL_check_eof(state))
+                return false;
 
             token->start = &CURRENT_CHAR;
 
@@ -208,7 +279,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                 case '!': token->type = CPL_TT_OP_NOT; next = true; break;
                 case '=': token->type = CPL_TT_OP_ASSIGN; break;
                 default:
-                    cplL_log_err("invalid operator: %c..", CURRENT_CHAR);
+                    cplL_log_err("invalid operator: %c..\n", CURRENT_CHAR);
                     return false;
                 }
 
@@ -275,7 +346,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
 
             else
             {
-                cplL_log_err("unexpected character %c", CURRENT_CHAR);
+                cplL_log_err("unexpected character %c\n", CURRENT_CHAR);
                 return false;
             }
 
@@ -294,7 +365,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                     { \
                         token->length++; \
                         char* symbol = cplL_token_as_cstr(token); \
-                        cplL_log_err("invalid numeric literal or symbol: %s", symbol); \
+                        cplL_log_err("invalid numeric literal or symbol: %s\n", symbol); \
                         free(symbol); \
                         return false; \
                     } \
@@ -328,7 +399,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                     state->cursor++;
                 }
                 else
-                    cplL_log_err("uknown prefix for a numeric literal: 0%c", CURRENT_CHAR);
+                    cplL_log_err("uknown prefix for a numeric literal: 0%c\n", CURRENT_CHAR);
                     return false;
             }
             break;
@@ -379,7 +450,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                     else
                     {
                         char* op = cplL_token_as_cstr(token);
-                        cplL_log_err("invalid operator: %s", op);
+                        cplL_log_err("invalid operator: %s\n", op);
                         free(op);
                         return false;
                     }
