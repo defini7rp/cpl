@@ -2,10 +2,12 @@
 #define CPL_INTERPRETER_H_
 
 #include "cpl_parser.h"
+#include "cpl_hashtable.h"
 
 typedef struct cplI_State
 {
     cplP_State* parser;
+    cplHT_Table variables;
 } cplI_State;
 
 double cplI_visit_bin(cplI_State* state, cplP_Node* node);

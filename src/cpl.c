@@ -10,7 +10,6 @@
 int main(int argc, char* argv[])
 {
     cplL_State lexer = {0};
-    cplL_Token token;
 
     #ifdef _MSC_VER
     lexer.input = cplU_read_file("../test.cpl", &lexer.input_length);

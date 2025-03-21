@@ -46,6 +46,12 @@ bool cplP_expect(cplP_State* state, cplL_TokenType type)
 
 cplP_Node* cplP_parse_factor(cplP_State* state)
 {
+#define PEEK(node_type) \
+    { node = cplU_alloc(cplP_Node); \
+    node->type = node_type; \
+    node->value = state->current_token; \
+    cplP_next_token(state); }
+
     cplP_Node* node = NULL;
 
     if (cplP_has_type(state, CPL_TT_OP_MINUS, CPL_TT_OP_PLUS))
@@ -60,12 +66,10 @@ cplP_Node* cplP_parse_factor(cplP_State* state)
     }
 
     else if (cplP_has_type(state, CPL_TT_BOOLEAN, CPL_TT_STRING, CPL_TT_NUMERIC_10))
-    {
-        node = cplU_alloc(cplP_Node);
-        node->type = CPL_NT_LITERAL;
-        node->value = state->current_token;
-        cplP_next_token(state);
-    }
+        PEEK(CPL_NT_LITERAL)
+
+    else if (state->current_token.type == CPL_TT_SYMBOL)
+        PEEK(CPL_NT_SYMBOL)
 
     else if (cplP_has_type(state, CPL_TT_OP_LPAREN))
     {
@@ -105,7 +109,7 @@ cplP_Node* cplP_parse_expr(cplP_State* state)
 {
     cplP_Node* left = cplP_parse_term(state);
 
-    while (cplP_has_type(state, CPL_TT_OP_PLUS, CPL_TT_OP_MINUS))
+    while (cplP_has_type(state, CPL_TT_OP_PLUS, CPL_TT_OP_MINUS, CPL_TT_OP_ASSIGN))
     {
         cplP_Node* node = cplU_alloc(cplP_Node);
         
@@ -114,7 +118,11 @@ cplP_Node* cplP_parse_expr(cplP_State* state)
         cplP_next_token(state);
 
         node->left = left;
-        node->right = cplP_parse_term(state);
+
+        node->right =
+            node->value.type == CPL_TT_OP_ASSIGN ?
+            cplP_parse_expr(state) :
+            cplP_parse_term(state);
 
         left = node;
     }
