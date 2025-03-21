@@ -1,27 +1,11 @@
 #include "cpl_utils.h"
 #include "cpl_lexer.h"
 #include "cpl_parser.h"
+#include "cpl_interpreter.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
-void postorder_traversal(cplP_Unit* tree)
-{
-    if (!tree)
-        return;
-
-    if (tree->oper_or_literal.type == CPL_TT_NUMERIC_10)
-    {
-        printf("%s ", cplL_token_to_cstr(&tree->oper_or_literal));
-        return;
-    }
-
-    postorder_traversal(tree->left);
-    postorder_traversal(tree->right);
-
-    printf("%s ", cplL_token_to_cstr(&tree->oper_or_literal));
-}
 
 int main(int argc, char* argv[])
 {
@@ -38,13 +22,14 @@ int main(int argc, char* argv[])
         return 1;
 
     cplP_State parser = {0};
-
     parser.lexer = &lexer;
-    cplP_Unit* ast = cplP_parse(&parser);
 
-    postorder_traversal(ast);
+    cplI_State interpreter = {0};
+    interpreter.parser = &parser;
 
-    free(ast);
+    double result = cplI_interpret(&interpreter);    
+    printf("%lf\n", result);
+
     free(lexer.input);
 
     return 0;

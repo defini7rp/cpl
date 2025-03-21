@@ -44,14 +44,15 @@ bool cplP_expect(cplP_State* state, cplL_TokenType type)
     return true;
 }
 
-cplP_Unit* cplP_parse_factor(cplP_State* state)
+cplP_Node* cplP_parse_factor(cplP_State* state)
 {
-    cplP_Unit* node = NULL;
+    cplP_Node* node = NULL;
 
     if (cplP_has_type(state, CPL_TT_BOOLEAN, CPL_TT_STRING, CPL_TT_NUMERIC_10))
     {
-        node = cplU_alloc(cplP_Unit);
-        node->oper_or_literal = state->current_token;
+        node = cplU_alloc(cplP_Node);
+        node->type = CPL_NT_LITERAL;
+        node->value = state->current_token;
         cplP_next_token(state);
     }
 
@@ -68,15 +69,16 @@ cplP_Unit* cplP_parse_factor(cplP_State* state)
     return node;
 }
 
-cplP_Unit* cplP_parse_term(cplP_State* state)
+cplP_Node* cplP_parse_term(cplP_State* state)
 {
-    cplP_Unit* left = cplP_parse_factor(state);
+    cplP_Node* left = cplP_parse_factor(state);
 
     while (cplP_has_type(state, CPL_TT_OP_ASTERISK, CPL_TT_OP_SLASH))
     {
-        cplP_Unit* node = cplU_alloc(cplP_Unit);
+        cplP_Node* node = cplU_alloc(cplP_Node);
         
-        node->oper_or_literal = state->current_token;
+        node->type = CPL_NT_OP_BIN;
+        node->value = state->current_token;
         cplP_next_token(state);
 
         node->left = left;
@@ -88,15 +90,16 @@ cplP_Unit* cplP_parse_term(cplP_State* state)
     return left;
 }
 
-cplP_Unit* cplP_parse_expr(cplP_State* state)
+cplP_Node* cplP_parse_expr(cplP_State* state)
 {
-    cplP_Unit* left = cplP_parse_term(state);
+    cplP_Node* left = cplP_parse_term(state);
 
     while (cplP_has_type(state, CPL_TT_OP_PLUS, CPL_TT_OP_MINUS))
     {
-        cplP_Unit* node = cplU_alloc(cplP_Unit);
+        cplP_Node* node = cplU_alloc(cplP_Node);
         
-        node->oper_or_literal = state->current_token;
+        node->type = CPL_NT_OP_BIN;
+        node->value = state->current_token;
         cplP_next_token(state);
 
         node->left = left;
@@ -108,8 +111,19 @@ cplP_Unit* cplP_parse_expr(cplP_State* state)
     return left;
 }
 
-cplP_Unit* cplP_parse(cplP_State* state)
+cplP_Node* cplP_parse(cplP_State* state)
 {
     cplP_next_token(state);
     return cplP_parse_expr(state);
+}
+
+void cplP_free_node(cplP_Node* node)
+{
+    if (node == NULL)
+        return;
+        
+    cplP_free_node(node->left);
+    cplP_free_node(node->right);
+
+    free(node);
 }

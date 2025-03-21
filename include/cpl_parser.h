@@ -3,12 +3,19 @@
 
 #include "cpl_lexer.h"
 
-typedef struct cplP_Unit
+typedef enum cplP_NodeType
 {
-   struct cplP_Unit* left;
-   struct cplP_Unit* right;
-   cplL_Token oper_or_literal;
-} cplP_Unit;
+    CPL_NT_LITERAL,
+    CPL_NT_OP_BIN
+} cplP_NodeType;
+
+typedef struct cplP_Node
+{
+   struct cplP_Node* left;
+   struct cplP_Node* right;
+   cplL_Token value;
+   cplP_NodeType type;
+} cplP_Node;
 
 typedef struct cplP_State
 {
@@ -25,9 +32,11 @@ bool cplP_next_token(cplP_State* state);
 // otherwise prints an error
 bool cplP_expect(cplP_State* state, cplL_TokenType type);
 
-cplP_Unit* cplP_parse_factor(cplP_State* state);
-cplP_Unit* cplP_parse_term(cplP_State* state);
-cplP_Unit* cplP_parse_expr(cplP_State* state);
-cplP_Unit* cplP_parse(cplP_State* state);
+cplP_Node* cplP_parse_factor(cplP_State* state);
+cplP_Node* cplP_parse_term(cplP_State* state);
+cplP_Node* cplP_parse_expr(cplP_State* state);
+cplP_Node* cplP_parse(cplP_State* state);
+
+void cplP_free_node(cplP_Node* node);
 
 #endif
