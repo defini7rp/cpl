@@ -10,8 +10,9 @@
                 "/nologo",
                 "/Fe${fileDirname}\\${fileBasenameNoExtension}.exe",
                 "/I../include",
-                "../src/cpl_lexer.c",
                 "../src/cpl_utils.c",
+                "../src/cpl_lexer.c",
+                "../src/cpl_parser.c",
                 "../src/cpl.c"
             ],
             "options": {

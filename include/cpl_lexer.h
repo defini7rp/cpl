@@ -100,16 +100,16 @@ typedef struct cplL_State
     size_t line;
     size_t line_start;
 
-    cplL_StateType currentState;
-    cplL_StateType nextState;
+    cplL_StateType current_state;
+    cplL_StateType next_state;
 
-    int parenthesesBalancer;
-    int quotesBalancer;
+    int parentheses_balancer;
+    int quotes_balancer;
 } cplL_State;
 
-void cplL_log_err(const char* format, ...);
-
+const char* cplL_token_type_to_cstr(cplL_TokenType type);
 char* cplL_token_to_cstr(cplL_Token* token);
+
 void cplL_print_token(cplL_Token* token);
 bool cplL_is_token_equal(cplL_Token* token, const char* data);
 

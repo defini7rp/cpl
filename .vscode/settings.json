@@ -4,6 +4,8 @@
     ],
     "files.associations": {
         "stdio.h": "c",
-        "cpl_utils.h": "c"
+        "cpl_utils.h": "c",
+        "cpl_parser.h": "c",
+        "cpl_lexer.h": "c"
     }
 }

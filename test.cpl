@@ -1,3 +1,1 @@
-func say_hi(name)
-    print('Hello ' + name)
-end
+2 + 3 * 5

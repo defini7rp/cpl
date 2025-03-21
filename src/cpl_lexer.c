@@ -1,35 +1,14 @@
 #include "cpl_lexer.h"
+#include "cpl_utils.h"
 
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-// TODO: Printing the location of where an error has occured
-void cplL_log_err(const char* format, ...)
-{
-    va_list args;
-
-    va_start(args, format);
-    vfprintf(stderr, format, args);
-    va_end(args);
-}
-
-char* cplL_token_as_cstr(cplL_Token* token)
-{
-    char* buffer = (char*)malloc(token->length + 1);
-
-    for (size_t i = 0; i < token->length; i++)
-        buffer[i] = *(token->start + i);
-        
-    buffer[token->length] = '\0';
-    return buffer;
-}
-
-void cplL_print_token(cplL_Token* token)
+const char* cplL_token_type_to_cstr(cplL_TokenType type)
 {
     const char* prefix;
 
-    switch (token->type)
+    switch (type)
     {
     case CPL_TT_UNDEFINED:       prefix = "UNDEFINED";       break;
     case CPL_TT_STRING:          prefix = "STRING";          break;
@@ -78,7 +57,23 @@ void cplL_print_token(cplL_Token* token)
     case CPL_TT_KW_WHILE:        prefix = "KW_WHILE";        break;
     }
 
-    printf("[%s] ", prefix);
+    return prefix;
+}
+
+char* cplL_token_to_cstr(cplL_Token* token)
+{
+    char* buffer = (char*)malloc(token->length + 1);
+
+    for (size_t i = 0; i < token->length; i++)
+        buffer[i] = *(token->start + i);
+        
+    buffer[token->length] = '\0';
+    return buffer;
+}
+
+void cplL_print_token(cplL_Token* token)
+{
+    printf("[%s] ", cplL_token_type_to_cstr(token->type));
     
     for (size_t i = 0; i < token->length; i++)
         putchar(*(token->start + i));
@@ -175,20 +170,20 @@ bool cplL_is_hex(char c)
             'A' <= c && c <= 'F';
 }
 
-void cplL_start_token(cplL_State* state, cplL_Token* token, cplL_TokenType type, cplL_StateType nextState, bool push)
+void cplL_start_token(cplL_State* state, cplL_Token* token, cplL_TokenType type, cplL_StateType next_state, bool push)
 {
     token->type = type;
 
     if (push)
         token->length++;
 
-    state->nextState = nextState;
+    state->next_state = next_state;
 }
 
-void cplL_append_char(cplL_State* state, cplL_Token* token, cplL_StateType nextState)
+void cplL_append_char(cplL_State* state, cplL_Token* token, cplL_StateType next_state)
 {
     token->length++;
-    state->nextState = nextState;
+    state->next_state = next_state;
     state->cursor++;
 }
 
@@ -196,11 +191,11 @@ bool cplL_check_eof(cplL_State* state)
 {
     if (state->cursor >= state->input_length)
     {
-        if (state->parenthesesBalancer != 0)
-            cplL_log_err("parentheses were not balanced\n");
+        if (state->parentheses_balancer != 0)
+            cplU_log_err("parentheses were not balanced\n");
 
-        if (state->quotesBalancer != 0)
-            cplL_log_err("quotes were not balanced\n");
+        if (state->quotes_balancer != 0)
+            cplU_log_err("quotes were not balanced\n");
 
         return false;
     }
@@ -226,7 +221,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
 
     do
     {
-        if (state->currentState == CPL_ST_NEW)
+        if (state->current_state == CPL_ST_NEW)
         {
             while (cplL_is_whitespace(CURRENT_CHAR) ||
                 cplL_is_newline(CURRENT_CHAR))
@@ -265,7 +260,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
 
                 switch (CURRENT_CHAR)
                 {
-                case '+': token->type = CPL_TT_OP_MINUS; break;
+                case '+': token->type = CPL_TT_OP_PLUS; break;
                 case '-': token->type = CPL_TT_OP_MINUS; break;
                 case '*': token->type = CPL_TT_OP_ASTERISK; next = true; break;
                 case '/': token->type = CPL_TT_OP_SLASH; break;
@@ -279,12 +274,12 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                 case '!': token->type = CPL_TT_OP_NOT; next = true; break;
                 case '=': token->type = CPL_TT_OP_ASSIGN; break;
                 default:
-                    cplL_log_err("invalid operator: %c..\n", CURRENT_CHAR);
+                    cplU_log_err("invalid operator: %c..\n", CURRENT_CHAR);
                     return false;
                 }
 
                 token->length++;
-                state->nextState = next ? CPL_ST_OPERATOR : CPL_ST_COMPLETE;
+                state->next_state = next ? CPL_ST_OPERATOR : CPL_ST_COMPLETE;
             }
 
             else if (cplL_is_quote(CURRENT_CHAR))
@@ -297,7 +292,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                 );
 
                 token->start++;
-                state->quotesBalancer++;
+                state->quotes_balancer++;
             }
 
             else if (cplL_is_symbol_char(CURRENT_CHAR))
@@ -319,7 +314,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                     true
                 );
 
-                state->parenthesesBalancer++;
+                state->parentheses_balancer++;
             }
 
             else if (cplL_is_right_paren(CURRENT_CHAR))
@@ -331,7 +326,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                     true
                 );
 
-                state->parenthesesBalancer--;
+                state->parentheses_balancer--;
             }
 
             else if (CURRENT_CHAR == ',')
@@ -346,7 +341,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
 
             else
             {
-                cplL_log_err("unexpected character %c\n", CURRENT_CHAR);
+                cplU_log_err("unexpected character %c\n", CURRENT_CHAR);
                 return false;
             }
 
@@ -364,17 +359,17 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                     if (cplL_is_symbol_char(CURRENT_CHAR)) \
                     { \
                         token->length++; \
-                        char* symbol = cplL_token_as_cstr(token); \
-                        cplL_log_err("invalid numeric literal or symbol: %s\n", symbol); \
+                        char* symbol = cplL_token_to_cstr(token); \
+                        cplU_log_err("invalid numeric literal or symbol: %s\n", symbol); \
                         free(symbol); \
                         return false; \
                     } \
-                    state->nextState = CPL_ST_COMPLETE; \
+                    state->next_state = CPL_ST_COMPLETE; \
                 } \
             } \
             break;
 
-            switch (state->currentState)
+            switch (state->current_state)
             {
             NUMERIC_CASE(hex, CPL_ST_NUMERIC_16);
             NUMERIC_CASE(digit, CPL_ST_NUMERIC_10);
@@ -387,20 +382,22 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                     if (CURRENT_CHAR == 'x' || CURRENT_CHAR == 'X')
                     {
                         token->type = CPL_TT_NUMERIC_16;
-                        state->nextState = CPL_ST_NUMERIC_16;
+                        state->next_state = CPL_ST_NUMERIC_16;
                     }
                     
                     else if (CURRENT_CHAR == 'b' || CURRENT_CHAR == 'B')
                     {
                         token->type = CPL_TT_NUMERIC_2;
-                        state->nextState = CPL_ST_NUMERIC_2;
+                        state->next_state = CPL_ST_NUMERIC_2;
                     }
 
                     state->cursor++;
                 }
                 else
-                    cplL_log_err("uknown prefix for a numeric literal: 0%c\n", CURRENT_CHAR);
+                {
+                    cplU_log_err("unknown prefix for a numeric literal: 0%c\n", CURRENT_CHAR);
                     return false;
+                }
             }
             break;
 
@@ -408,8 +405,8 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
             {
                 if (cplL_is_quote(CURRENT_CHAR))
                 {
-                    state->quotesBalancer--;
-                    state->nextState = CPL_ST_COMPLETE;
+                    state->quotes_balancer--;
+                    state->next_state = CPL_ST_COMPLETE;
                     state->cursor++;
                 }
                 else
@@ -449,12 +446,14 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                         cplL_append_char(state, token, CPL_ST_COMPLETE);
                     else
                     {
-                        char* op = cplL_token_as_cstr(token);
-                        cplL_log_err("invalid operator: %s\n", op);
+                        char* op = cplL_token_to_cstr(token);
+                        cplU_log_err("invalid operator: %s\n", op);
                         free(op);
                         return false;
                     }
                 }
+                else
+                    state->next_state = CPL_ST_COMPLETE;
             }
             break;
 
@@ -468,21 +467,21 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                         cplL_is_token_equal(token, "false"))
                         token->type = CPL_TT_BOOLEAN;
 
-                    state->nextState = CPL_ST_COMPLETE;
+                    state->next_state = CPL_ST_COMPLETE;
                 }
             }
             break;
 
             case CPL_ST_COMPLETE:
-                state->nextState = CPL_ST_NEW;
+                state->next_state = CPL_ST_NEW;
             break;
 
             }
         }
 
-        state->currentState = state->nextState;
+        state->current_state = state->next_state;
     }
-    while (state->nextState != CPL_ST_NEW);
+    while (state->next_state != CPL_ST_NEW);
 
     return true;
 

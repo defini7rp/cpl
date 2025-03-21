@@ -3,6 +3,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
+
+// TODO: Printing the location of where an error has occured
+void cplU_log_err(const char* format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+}
 
 char* cplU_read_file(const char* filename, size_t* size)
 {
