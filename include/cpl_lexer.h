@@ -94,7 +94,7 @@ typedef struct cplL_Token
 
 typedef struct cplL_State
 {
-    const char* input;
+    char* input;
     size_t input_length;
     size_t cursor;
     size_t line;

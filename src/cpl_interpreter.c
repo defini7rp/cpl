@@ -16,7 +16,21 @@ double cplI_visit_bin(cplI_State* state, cplP_Node* node)
     case CPL_TT_OP_SLASH: return left / right; break;
     }
 
-    cplU_log_err("TODO: implement interpreting other binary operators");
+    cplU_log_err("TODO: implement interpreting other binary operators\n");
+    return 0.0;
+}
+
+double cplI_visit_unary(cplI_State* state, cplP_Node* node)
+{
+    double right = cplI_visit(state, node->right);
+
+    switch (node->value.type)
+    {
+    case CPL_TT_OP_MINUS: return -right;
+    case CPL_TT_OP_PLUS: return right;
+    }
+
+    cplU_log_err("TODO: implement interpreting other unary operators\n");
     return 0.0;
 }
 
@@ -30,7 +44,7 @@ double cplI_visit_literal(cplI_State* state, cplP_Node* node)
         return result;
     }
 
-    cplU_log_err("TODO: implement interpreting other literals");
+    cplU_log_err("TODO: implement interpreting other literals\n");
     return 0.0;
 }
 
@@ -40,9 +54,10 @@ double cplI_visit(cplI_State* state, cplP_Node* node)
     {
     case CPL_NT_LITERAL: return cplI_visit_literal(state, node);
     case CPL_NT_OP_BIN: return cplI_visit_bin(state, node);
+    case CPL_NT_OP_UNARY: return cplI_visit_unary(state, node);
     
     default:
-        cplU_log_err("TODO: implement visiting other nodes");
+        cplU_log_err("TODO: implement visiting other nodes\n");
 
     }
 

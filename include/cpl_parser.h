@@ -6,7 +6,8 @@
 typedef enum cplP_NodeType
 {
     CPL_NT_LITERAL,
-    CPL_NT_OP_BIN
+    CPL_NT_OP_BIN,
+    CPL_NT_OP_UNARY
 } cplP_NodeType;
 
 typedef struct cplP_Node

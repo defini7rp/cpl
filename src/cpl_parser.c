@@ -31,7 +31,7 @@ bool cplP_expect(cplP_State* state, cplL_TokenType type)
     if (state->current_token.type != type)
     {
         cplU_log_err(
-            "expected %s but got %s",
+            "expected %s but got %s\n",
             cplL_token_type_to_cstr(type),
             cplL_token_type_to_cstr(state->current_token.type)
         );
@@ -48,7 +48,18 @@ cplP_Node* cplP_parse_factor(cplP_State* state)
 {
     cplP_Node* node = NULL;
 
-    if (cplP_has_type(state, CPL_TT_BOOLEAN, CPL_TT_STRING, CPL_TT_NUMERIC_10))
+    if (cplP_has_type(state, CPL_TT_OP_MINUS, CPL_TT_OP_PLUS))
+    {
+        node = cplU_alloc(cplP_Node);
+
+        node->type = CPL_NT_OP_UNARY;
+        node->value = state->current_token;
+
+        cplP_next_token(state);
+        node->right = cplP_parse_factor(state);
+    }
+
+    else if (cplP_has_type(state, CPL_TT_BOOLEAN, CPL_TT_STRING, CPL_TT_NUMERIC_10))
     {
         node = cplU_alloc(cplP_Node);
         node->type = CPL_NT_LITERAL;
@@ -64,7 +75,7 @@ cplP_Node* cplP_parse_factor(cplP_State* state)
     }
 
     else
-        cplU_log_err("TODO: parse other factors");
+        cplU_log_err("TODO: parse other factors\n");
 
     return node;
 }
