@@ -18,6 +18,7 @@ void cplI_visit_bin(cplI_State* state, cplP_Node* node, double* result)
 
     // TODO: handle right == 0
     case CPL_TT_OP_SLASH: *result = left / right; break;
+    case CPL_TT_OP_INT_DIV: *result = (double)((int)left / (int)right); break;
     
     default:
         cplU_log_err("TODO: implement interpreting other binary operators\n");
@@ -100,6 +101,7 @@ void cplI_visit(cplI_State* state, cplP_Node* node, double* result)
     case CPL_NT_SCOPE: cplI_visit_scope(state, node, result); break;
     case CPL_NT_OP_ASSIGN: cplI_visit_assign(state, node, result); break;
     case CPL_NT_SYMBOL: cplI_visit_symbol(state, node, result); break;
+    case CPL_NT_BLANK: break;
     
     default:
         cplU_log_err("TODO: implement visiting other nodes\n");
@@ -114,11 +116,10 @@ void cplI_interpret(cplI_State* state, double* result)
     cplHT_init(&state->variables);
     cplI_visit(state, ast, result);
 
-    double a, b;
-    cplHT_get(&state->variables, "some_var1", &a);
-    cplHT_get(&state->variables, "some_var2", &b);
+    double dump;
+    cplHT_get(&state->variables, "dump", &dump);
 
-    cplU_log_err("%lf %lf\n", a, b);
+    cplU_log_err("%lf\n", dump);
 
     cplHT_free(&state->variables);
     cplP_free_node(ast);

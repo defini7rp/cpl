@@ -114,7 +114,7 @@ cplP_Node* cplP_parse_term(cplP_State* state)
 {
     cplP_Node* left = cplP_parse_factor(state);
 
-    while (cplP_has_type(state, CPL_TT_OP_ASTERISK, CPL_TT_OP_SLASH))
+    while (cplP_has_type(state, CPL_TT_OP_ASTERISK, CPL_TT_OP_SLASH, CPL_TT_OP_INT_DIV))
     {
         cplP_Node* node = cplP_new_node(2, CPL_NT_OP_BIN, &state->current_token);
         cplP_next_token(state); // operator

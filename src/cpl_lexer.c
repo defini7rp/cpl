@@ -96,17 +96,12 @@ bool cplL_is_token_equal(cplL_Token* token, const char* data)
 
 bool cplL_is_digit(char c)
 {
-    return '0' <= c && c <= '9';
+    return '0' <= c && c <= '9' || c == '.';
 }
 
-bool cplL_is_lower(char c)
+bool cplL_is_alpha(char c)
 {
-    return 'a' <= c && c <= 'z';
-}
-
-bool cplL_is_upper(char c)
-{
-    return 'A' <= c && c <= 'Z';
+    return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z';
 }
 
 bool cplL_is_newline(char c)
@@ -130,10 +125,9 @@ bool cplL_is_operator_char(char c)
 
 bool cplL_is_symbol_char(char c)
 {
-    return cplL_is_lower(c) ||
-            cplL_is_upper(c) ||
-            cplL_is_digit(c) ||
-            c == '_';
+    return cplL_is_alpha(c) ||
+           cplL_is_digit(c) ||
+           c == '_';
 }
 
 bool cplL_is_quote(char c)
@@ -196,7 +190,42 @@ bool cplL_check_eof(cplL_State* state)
         if (state->quotes_balancer != 0)
             cplU_log_err("quotes were not balanced\n");
 
+        return true;
+    }
+
+    return false;
+}
+
+bool cplL_skip_whitespaces(cplL_State* state)
+{
+    bool eof;
+
+    while (!(eof = cplL_check_eof(state)) && (
+        cplL_is_whitespace(state->input[state->cursor]) ||
+        cplL_is_newline(state->input[state->cursor])))
+        state->cursor++;
+
+    return !eof;
+}
+
+bool cplL_skip_comments(cplL_State* state)
+{
+    if (cplL_check_eof(state))
         return false;
+
+    if (state->input[state->cursor] == '#')
+    {
+        state->cursor++;
+
+        bool eof;
+
+        while (!(eof = cplL_check_eof(state)) && !cplL_is_newline(state->input[state->cursor]))
+            state->cursor++;
+
+        if (!cplL_skip_whitespaces(state))
+            return false;
+
+        return !eof;
     }
 
     return true;
@@ -215,18 +244,17 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
     token->type = CPL_TT_UNDEFINED;
     token->start = 0;
 
-    if (!cplL_check_eof(state))
+    if (cplL_check_eof(state))
         return false;
 
     do
     {
         if (state->current_state == CPL_ST_NEW)
         {
-            while (cplL_is_whitespace(CURRENT_CHAR) ||
-                cplL_is_newline(CURRENT_CHAR))
-                state->cursor++;
+            if (!cplL_skip_whitespaces(state))
+                return false;
 
-            if (!cplL_check_eof(state))
+            if (!cplL_skip_comments(state))
                 return false;
 
             token->start = &CURRENT_CHAR;
@@ -262,7 +290,7 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                 case '+': token->type = CPL_TT_OP_PLUS; break;
                 case '-': token->type = CPL_TT_OP_MINUS; break;
                 case '*': token->type = CPL_TT_OP_ASTERISK; next = true; break;
-                case '/': token->type = CPL_TT_OP_SLASH; break;
+                case '/': token->type = CPL_TT_OP_SLASH; next = true; break;
                 case '%': token->type = CPL_TT_OP_MOD; break;
                 case '|': token->type = CPL_TT_OP_BOR; next = true; break;
                 case '&': token->type = CPL_TT_OP_BAND; next = true; break;
@@ -414,6 +442,8 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                     {
                     case CPL_TT_OP_ASTERISK:
                         EXPECT('*', CPL_TT_OP_POWER) break;
+                    case CPL_TT_OP_SLASH:
+                        EXPECT('/', CPL_TT_OP_INT_DIV) break;
                     case CPL_TT_OP_BOR:
                         EXPECT('|', CPL_TT_OP_OR) break;
                     case CPL_TT_OP_BAND:

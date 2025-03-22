@@ -1,4 +1,5 @@
 {
-    some_var1 = 3 + (-2 + 6 * (-7) + 8 * (3 - 5)) / 2;
-    some_var2 = 8 + some_var1
+    # it's a comment
+    dump = 7 // 2; # it's a variable
+    dump1 = 7 / 3.5; # and it's another variable
 }

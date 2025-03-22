@@ -27,6 +27,7 @@ typedef enum cplL_TokenType
     CPL_TT_OP_MINUS,
     CPL_TT_OP_ASTERISK,
     CPL_TT_OP_SLASH,
+    CPL_TT_OP_INT_DIV,
     CPL_TT_OP_MOD,
     CPL_TT_OP_BOR,
     CPL_TT_OP_BAND,
@@ -114,7 +115,7 @@ void cplL_print_token(cplL_Token* token);
 bool cplL_is_token_equal(cplL_Token* token, const char* data);
 
 bool cplL_is_digit(char c);
-bool cplL_is_lower(char c);
+bool cplL_is_alpha(char c);
 bool cplL_is_upper(char c);
 bool cplL_is_newline(char c);
 bool cplL_is_whitespace(char c);
@@ -130,7 +131,11 @@ bool cplL_is_hex(char c);
 void cplL_start_token(cplL_State* state, cplL_Token* token, cplL_TokenType type, cplL_StateType nextState, bool push);
 void cplL_append_char(cplL_State* state, cplL_Token* token, cplL_StateType nextState);
 
+// Returns true on EOF
 bool cplL_check_eof(cplL_State* state);
+
+bool cplL_skip_whitespaces(cplL_State* state);
+bool cplL_skip_comments(cplL_State* state);
 
 // Returns true if we've got a token and returns false in a case of invalid token
 // or an end of the file
