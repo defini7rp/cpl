@@ -17,8 +17,6 @@ typedef enum cplL_TokenType
     CPL_TT_BOOLEAN,
     CPL_TT_SYMBOL,
 
-    // !!! The order is reserved starting from CPL_TT_OPERATOR !!!
-    CPL_TT_OPERATOR,
     CPL_TT_OP_LPAREN,
     CPL_TT_OP_RPAREN,
     CPL_TT_OP_LBRACE,
@@ -49,14 +47,7 @@ typedef enum cplL_TokenType
     CPL_TT_OP_NOTEQUAL,
     CPL_TT_OP_SEMICOLON,
 
-    CPL_TT_KEYWORD,
-    CPL_TT_KW_IF,
-    CPL_TT_KW_VAR,
-    CPL_TT_KW_FOR,
-    CPL_TT_KW_ELSE,
-    CPL_TT_KW_ELIF,
-    CPL_TT_KW_FUNC,
-    CPL_TT_KW_WHILE
+    CPL_TT_KW_FUNC
 } cplL_TokenType;
 
 typedef enum cplL_StateType

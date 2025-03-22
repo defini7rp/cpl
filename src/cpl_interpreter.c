@@ -85,6 +85,11 @@ void cplI_visit_symbol(cplI_State* state, cplP_Node* node, double* result)
     free(name);
 }
 
+void cplI_visit_func_decl(cplI_State* state, cplP_Node* node, double* result)
+{
+    cplU_log_err("TODO: implement interpreting function declarations");
+}
+
 void cplI_visit(cplI_State* state, cplP_Node* node, double* result)
 {
     if (!node)
@@ -93,20 +98,25 @@ void cplI_visit(cplI_State* state, cplP_Node* node, double* result)
         return;
     }
 
+#define VISIT(node_type) cplI_visit_##node_type(state, node, result)
+
     switch (node->type)
     {
-    case CPL_NT_LITERAL: cplI_visit_literal(state, node, result); break;
-    case CPL_NT_OP_BIN: cplI_visit_bin(state, node, result); break;
-    case CPL_NT_OP_UNARY: cplI_visit_unary(state, node, result); break;
-    case CPL_NT_SCOPE: cplI_visit_scope(state, node, result); break;
-    case CPL_NT_OP_ASSIGN: cplI_visit_assign(state, node, result); break;
-    case CPL_NT_SYMBOL: cplI_visit_symbol(state, node, result); break;
+    case CPL_NT_LITERAL: VISIT(literal); break;
+    case CPL_NT_OP_BIN: VISIT(bin); break;
+    case CPL_NT_OP_UNARY: VISIT(unary); break;
+    case CPL_NT_SCOPE: VISIT(scope); break;
+    case CPL_NT_OP_ASSIGN: VISIT(assign); break;
+    case CPL_NT_SYMBOL: VISIT(symbol); break;
+    case CPL_NT_FUNC_DECL: VISIT(func_decl); break;
     case CPL_NT_BLANK: break;
     
     default:
         cplU_log_err("TODO: implement visiting other nodes\n");
 
     }
+
+#undef VISIT
 }
 
 void cplI_interpret(cplI_State* state, double* result)

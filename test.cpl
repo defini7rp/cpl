@@ -1,5 +1,8 @@
+func hello(a, b, c, d)
 {
-    # it's a comment
-    dump = 7 // 2; # it's a variable
-    dump1 = 7 / 3.5; # and it's another variable
+    g = 20
 }
+
+# it's a comment
+dump = 7 // 2; # it's a variable
+dump1 = 7 / 3.5; # and it's another variable

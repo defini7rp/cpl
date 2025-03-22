@@ -18,7 +18,6 @@ const char* cplL_token_type_to_cstr(cplL_TokenType type)
     case CPL_TT_NUMERIC_16:      prefix = "NUMERIC_16";      break;
     case CPL_TT_BOOLEAN:         prefix = "BOOLEAN";         break;
     case CPL_TT_SYMBOL:          prefix = "SYMBOL";          break;
-    case CPL_TT_OPERATOR:        prefix = "OPERATOR";        break;
     case CPL_TT_OP_LPAREN:       prefix = "OP_LPAREN";       break;
     case CPL_TT_OP_RPAREN:       prefix = "OP_RPAREN";       break;
     case CPL_TT_OP_LBRACE:       prefix = "OP_LBRACE";       break;
@@ -46,14 +45,7 @@ const char* cplL_token_type_to_cstr(cplL_TokenType type)
     case CPL_TT_OP_GREATEREQUAL: prefix = "OP_GREATEREQUAL"; break;
     case CPL_TT_OP_ISEQUAL:      prefix = "OP_ISEQUAL";      break;
     case CPL_TT_OP_NOTEQUAL:     prefix = "OP_NOTEQUAL";     break;
-    case CPL_TT_KEYWORD:         prefix = "KEYWORD";         break;
-    case CPL_TT_KW_IF:           prefix = "KW_IF";           break;
-    case CPL_TT_KW_VAR:          prefix = "KW_VAR";          break;
-    case CPL_TT_KW_FOR:          prefix = "KW_FOR";          break;
-    case CPL_TT_KW_ELSE:         prefix = "KW_ELSE";         break;
-    case CPL_TT_KW_ELIF:         prefix = "KW_ELIF";         break;
     case CPL_TT_KW_FUNC:         prefix = "KW_FUNC";         break;
-    case CPL_TT_KW_WHILE:        prefix = "KW_WHILE";        break;
     }
 
     return prefix;
@@ -482,6 +474,9 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                     if (cplL_is_token_equal(token, "true") ||
                         cplL_is_token_equal(token, "false"))
                         token->type = CPL_TT_BOOLEAN;
+
+                    if (cplL_is_token_equal(token, "func"))
+                        token->type = CPL_TT_KW_FUNC;
 
                     state->next_state = CPL_ST_COMPLETE;
                 }

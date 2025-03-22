@@ -71,7 +71,6 @@ bool cplP_expect(cplP_State* state, cplL_TokenType type)
     }
 
     cplP_next_token(state);
-    
     return true;
 }
 
@@ -146,6 +145,40 @@ cplP_Node* cplP_parse_expr(cplP_State* state)
     return left;
 }
 
+cplP_Node* cplP_parse_func_decl(cplP_State* state)
+{
+    cplP_next_token(state); // func
+
+    cplP_Node* node = cplP_new_node(
+        0, CPL_NT_FUNC_DECL,
+        &state->current_token);
+    
+    cplP_next_token(state); // symbol
+    cplP_expect(state, CPL_TT_OP_LPAREN);
+
+    cplP_NodeChild** child = &node->children;
+
+    while (true)
+    {
+        *child = cplP_new_node_child(cplP_new_node(0, CPL_NT_SYMBOL, &state->current_token));
+        cplP_expect(state, CPL_TT_SYMBOL);
+
+        child = &(*child)->next;
+
+        if (state->current_token.type == CPL_TT_OP_RPAREN)
+        {
+            cplP_next_token(state);
+            break;
+        }
+
+        cplP_expect(state, CPL_TT_OP_COMMA);
+    }
+
+    *child = cplP_new_node_child(cplP_parse_scope(state));
+
+    return node;
+}
+
 cplP_Node* cplP_parse_assignment(cplP_State* state)
 {
     cplP_Node* node = cplP_new_node(2, CPL_NT_OP_ASSIGN, NULL);
@@ -166,6 +199,7 @@ cplP_Node* cplP_parse_statement(cplP_State* state)
     {
     case CPL_TT_OP_LBRACE: return cplP_parse_scope(state);
     case CPL_TT_SYMBOL: return cplP_parse_assignment(state);
+    case CPL_TT_KW_FUNC: return cplP_parse_func_decl(state);
     }
 
     return cplP_new_node(0, CPL_NT_BLANK, NULL);
@@ -181,7 +215,7 @@ cplP_Node* cplP_parse_statements(cplP_State* state)
     *child = NEXT_STATEMENT;
     child = &(*child)->next;
 
-    while (state->current_token.type == CPL_TT_OP_SEMICOLON)
+    while (cplP_has_type(state, CPL_TT_OP_SEMICOLON, CPL_TT_OP_RBRACE))
     {
         cplP_next_token(state); // ;
         *child = NEXT_STATEMENT;
@@ -203,7 +237,7 @@ cplP_Node* cplP_parse_scope(cplP_State* state)
 cplP_Node* cplP_parse(cplP_State* state)
 {
     cplP_next_token(state);
-    return cplP_parse_scope(state);
+    return cplP_parse_statements(state);
 }
 
 void cplP_free_node_children(cplP_NodeChild* child)

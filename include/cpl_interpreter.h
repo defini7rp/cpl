@@ -16,6 +16,7 @@ void cplI_visit_literal(cplI_State* state, cplP_Node* node, double* result);
 void cplI_visit_scope(cplI_State* state, cplP_Node* node, double* result);
 void cplI_visit_assign(cplI_State* state, cplP_Node* node, double* result);
 void cplI_visit_symbol(cplI_State* state, cplP_Node* node, double* result);
+void cplI_visit_func_decl(cplI_State* state, cplP_Node* node, double* result);
 void cplI_visit(cplI_State* state, cplP_Node* node, double* result);
 
 void cplI_interpret(cplI_State* state, double* result);

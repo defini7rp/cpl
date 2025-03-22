@@ -12,7 +12,8 @@ typedef enum cplP_NodeType
     CPL_NT_SYMBOL,
     CPL_NT_OP_ASSIGN,
     CPL_NT_STATEMENT,
-    CPL_NT_SCOPE
+    CPL_NT_SCOPE,
+    CPL_NT_FUNC_DECL
 } cplP_NodeType;
 
 struct cplP_Node;
@@ -53,6 +54,7 @@ cplP_Node* cplP_parse_factor(cplP_State* state);
 cplP_Node* cplP_parse_term(cplP_State* state);
 cplP_Node* cplP_parse_expr(cplP_State* state);
 
+cplP_Node* cplP_parse_func_decl(cplP_State* state);
 cplP_Node* cplP_parse_assignment(cplP_State* state);
 cplP_Node* cplP_parse_statement(cplP_State* state);
 cplP_Node* cplP_parse_statements(cplP_State* state);
