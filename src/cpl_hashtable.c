@@ -42,7 +42,7 @@ void cplHT_insert(cplHT_Table* table, const char* key, double value)
     table->count++;
 }
 
-void cplHT_get(cplHT_Table* table, const char* key, double* value)
+bool cplHT_get(cplHT_Table* table, const char* key, double* value)
 {
     cplHT_Bucket* bucket = table->buckets[cplHT_hash(key)];
 
@@ -51,11 +51,13 @@ void cplHT_get(cplHT_Table* table, const char* key, double* value)
         if (strcmp(bucket->key, key) == 0)
         {
             *value = bucket->value;
-            return;
+            return true;
         }
 
         bucket = bucket->next;
     }
+
+    return false;
 }
 
 void cplHT_remove(cplHT_Table* table, const char* key)

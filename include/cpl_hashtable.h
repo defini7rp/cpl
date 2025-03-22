@@ -2,6 +2,7 @@
 #define CPL_HASHTABLE_H_
 
 #include <stddef.h>
+#include <stdbool.h>
 
 // Use prime number for the number of buckets
 // to reduce a number of hash collisions,
@@ -29,7 +30,7 @@ cplHT_Bucket* cplHT_new_bucket(const char* key, double value);
 void cplHT_init(cplHT_Table* table);
 
 void cplHT_insert(cplHT_Table* table, const char* key, double value);
-void cplHT_get(cplHT_Table* table, const char* key, double* value);
+bool cplHT_get(cplHT_Table* table, const char* key, double* value);
 
 void cplHT_remove(cplHT_Table* table, const char* key);
 void cplHT_free(cplHT_Table* table);

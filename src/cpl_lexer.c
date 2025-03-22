@@ -21,6 +21,8 @@ const char* cplL_token_type_to_cstr(cplL_TokenType type)
     case CPL_TT_OPERATOR:        prefix = "OPERATOR";        break;
     case CPL_TT_OP_LPAREN:       prefix = "OP_LPAREN";       break;
     case CPL_TT_OP_RPAREN:       prefix = "OP_RPAREN";       break;
+    case CPL_TT_OP_LBRACE:       prefix = "OP_LBRACE";       break;
+    case CPL_TT_OP_RBRACE:       prefix = "OP_RBRACE";       break;
     case CPL_TT_OP_PLUS:         prefix = "OP_PLUS";         break;
     case CPL_TT_OP_MINUS:        prefix = "OP_MINUS";        break;
     case CPL_TT_OP_ASTERISK:     prefix = "OP_ASTERISK";     break;
@@ -46,11 +48,8 @@ const char* cplL_token_type_to_cstr(cplL_TokenType type)
     case CPL_TT_OP_NOTEQUAL:     prefix = "OP_NOTEQUAL";     break;
     case CPL_TT_KEYWORD:         prefix = "KEYWORD";         break;
     case CPL_TT_KW_IF:           prefix = "KW_IF";           break;
-    case CPL_TT_KW_DO:           prefix = "KW_DO";           break;
     case CPL_TT_KW_VAR:          prefix = "KW_VAR";          break;
     case CPL_TT_KW_FOR:          prefix = "KW_FOR";          break;
-    case CPL_TT_KW_END:          prefix = "KW_END";          break;
-    case CPL_TT_KW_THEN:         prefix = "KW_THEN";         break;
     case CPL_TT_KW_ELSE:         prefix = "KW_ELSE";         break;
     case CPL_TT_KW_ELIF:         prefix = "KW_ELIF";         break;
     case CPL_TT_KW_FUNC:         prefix = "KW_FUNC";         break;
@@ -144,12 +143,12 @@ bool cplL_is_quote(char c)
 
 bool cplL_is_left_paren(char c)
 {
-    return c == '(' || c == '[' || c == '{';
+    return c == '(' || c == '{';
 }
 
 bool cplL_is_right_paren(char c)
 {
-    return c == ')' || c == ']' || c == '}';
+    return c == ')' || c == '}';
 }
 
 bool cplL_is_numeric_prefix(char c)
@@ -305,39 +304,26 @@ bool cplL_next_token(cplL_State* state, cplL_Token* token)
                 );
             }
 
+#define PEEK_COMPLETE(token_type, push) \
+            cplL_start_token(state, token, token_type, CPL_ST_COMPLETE, push)
+
             else if (cplL_is_left_paren(CURRENT_CHAR))
             {
-                cplL_start_token(
-                    state, token,
-                    CPL_TT_OP_LPAREN,
-                    CPL_ST_COMPLETE,
-                    true
-                );
-
+                PEEK_COMPLETE(CURRENT_CHAR == '(' ? CPL_TT_OP_LPAREN : CPL_TT_OP_LBRACE, true);
                 state->parentheses_balancer++;
             }
 
             else if (cplL_is_right_paren(CURRENT_CHAR))
             {
-                cplL_start_token(
-                    state, token,
-                    CPL_TT_OP_RPAREN,
-                    CPL_ST_COMPLETE,
-                    true
-                );
-
+                PEEK_COMPLETE(CURRENT_CHAR == ')' ? CPL_TT_OP_RPAREN : CPL_TT_OP_RBRACE, true);
                 state->parentheses_balancer--;
             }
 
             else if (CURRENT_CHAR == ',')
-            {
-                cplL_start_token(
-                    state, token,
-                    CPL_TT_OP_COMMA,
-                    CPL_ST_COMPLETE,
-                    false
-                );
-            }
+                PEEK_COMPLETE(CPL_TT_OP_COMMA, false);
+
+            else if (CURRENT_CHAR == ';')
+                PEEK_COMPLETE(CPL_TT_OP_SEMICOLON, false);
 
             else
             {

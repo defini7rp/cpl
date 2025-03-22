@@ -26,7 +26,8 @@ int main(int argc, char* argv[])
     cplI_State interpreter = {0};
     interpreter.parser = &parser;
 
-    double result = cplI_interpret(&interpreter);    
+    double result = 0.0;
+    cplI_interpret(&interpreter, &result);    
     printf("%lf\n", result);
 
     free(lexer.input);

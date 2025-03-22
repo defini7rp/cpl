@@ -10,11 +10,14 @@ typedef struct cplI_State
     cplHT_Table variables;
 } cplI_State;
 
-double cplI_visit_bin(cplI_State* state, cplP_Node* node);
-double cplI_visit_unary(cplI_State* state, cplP_Node* node);
-double cplI_visit_literal(cplI_State* state, cplP_Node* node);
-double cplI_visit(cplI_State* state, cplP_Node* node);
+void cplI_visit_bin(cplI_State* state, cplP_Node* node, double* result);
+void cplI_visit_unary(cplI_State* state, cplP_Node* node, double* result);
+void cplI_visit_literal(cplI_State* state, cplP_Node* node, double* result);
+void cplI_visit_scope(cplI_State* state, cplP_Node* node, double* result);
+void cplI_visit_assign(cplI_State* state, cplP_Node* node, double* result);
+void cplI_visit_symbol(cplI_State* state, cplP_Node* node, double* result);
+void cplI_visit(cplI_State* state, cplP_Node* node, double* result);
 
-double cplI_interpret(cplI_State* state);
+void cplI_interpret(cplI_State* state, double* result);
 
 #endif

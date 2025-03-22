@@ -1,1 +1,4 @@
-hello = 2 + 2 * 2
+{
+    some_var1 = 3 + (-2 + 6 * (-7) + 8 * (3 - 5)) / 2;
+    some_var2 = 8 + some_var1
+}

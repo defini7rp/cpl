@@ -8,6 +8,7 @@
         "cpl_parser.h": "c",
         "cpl_lexer.h": "c",
         "cpl_interpreter.h": "c",
-        "cpl_hashtable.h": "c"
+        "cpl_hashtable.h": "c",
+        "stddef.h": "c"
     }
 }
